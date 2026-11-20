@@ -1,12 +1,12 @@
-# DiskShelf
+# DriveShelf
 
 Track your drives, plan your bays and RAID pools, from a pile of disks to a rack of servers.
 
-DiskShelf is a single-file web app. Open `index.html` in any modern browser: nothing to install, no build step, no server, no account.
+DriveShelf is a single-file web app. Open `index.html` in any modern browser: nothing to install, no build step, no server, no account.
 
 ## Who it's for
 
-On first launch DiskShelf asks what you're planning and sets itself up to match:
+On first launch DriveShelf asks what you're planning and sets itself up to match:
 
 - **Just my drives**: a drive inventory with RAID pool planning, no servers or bays. Good for a drawer of disks, a desktop, or deciding what to buy.
 - **One or more servers**: add servers from templates (generic 4 to 24-bay, Dell PowerEdge T320 and R720xd, HPE MicroServer, Synology DS920+ and DS1821+, Supermicro SC846, NetApp DS4246), or pick **Custom** and enter any bay count from 1 to 96.

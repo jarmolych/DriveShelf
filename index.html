@@ -1,5 +1,5 @@
 <!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
-<title>DiskShelf</title>
+<title>DriveShelf</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
 <style>
@@ -622,7 +622,7 @@ html[data-invbars="0"] .cbar{display:none}
 <div class="app" id="app">
   <nav class="sidenav" id="nav" aria-label="Sections">
     <div class="nav-top">
-      <span class="nav-logo" aria-hidden="true">DS</span><span class="nav-label nav-title">DiskShelf</span>
+      <span class="nav-logo" aria-hidden="true">DS</span><span class="nav-label nav-title">DriveShelf</span>
       <button type="button" class="icon-btn ghost" id="navToggle" aria-label="Collapse side menu" title="Collapse side menu"><svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><path d="M10 3 5 8l5 5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
     </div>
     <div class="nav-items" id="navItems"></div>
@@ -644,7 +644,7 @@ html[data-invbars="0"] .cbar{display:none}
     <header class="top">
       <div>
         <div class="eyebrow">Drive inventory · bays · RAID pools</div>
-        <h1>DiskShelf</h1>
+        <h1>DriveShelf</h1>
       </div>
       <div class="top-right">
         <span style="display:flex;gap:8px;align-items:center"><button type="button" class="save busy" id="saveStatus" title="Storage status">Connecting…</button><button type="button" class="icon-btn" id="hdrSettings" aria-label="Settings" title="Settings"><svg viewBox="0 0 16 16" width="15" height="15" aria-hidden="true"><circle cx="8" cy="8" r="2.3" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M8 1.5v2M8 12.5v2M1.5 8h2M12.5 8h2M3.4 3.4l1.4 1.4M11.2 11.2l1.4 1.4M3.4 12.6l1.4-1.4M11.2 4.8l1.4-1.4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></button></span>
@@ -713,9 +713,11 @@ const SHORT={stripe:'stripe',mirror:'mirror',raidz1:'Z1',raidz2:'Z2',raidz3:'Z3'
 const ZFSEQ={raid0:'a ZFS stripe',raid1:'a ZFS mirror',raid5:'RAIDZ1',raid6:'RAIDZ2',raid10:'striped ZFS mirrors'};
 const MIN={stripe:1,mirror:2,raidz1:3,raidz2:4,raidz3:5,raid0:2,raid1:2,raid5:3,raid6:4,raid10:4};
 const isClassic=l=>l.startsWith('raid')&&!l.startsWith('raidz');
-const KEY='diskshelf.current',SKEY='diskshelf.saved',UKEY='diskshelf.ui';
+const KEY='driveshelf.current',SKEY='driveshelf.saved',UKEY='driveshelf.ui';
+// one-time migration from the short-lived diskshelf.* keys
+try{for(const s of ['current','saved','ui','setup']){const o=localStorage.getItem('diskshelf.'+s);if(o!==null&&localStorage.getItem('driveshelf.'+s)===null)localStorage.setItem('driveshelf.'+s,o)}}catch(e){}
 const TAB=Math.random().toString(36).slice(2,10);
-const DEFAULT_CFG={"app":"diskshelf","version":3,"state":{"example":true,"servers":[{"id":"srv-nas","name":"Main NAS","n":8,"cols":0},{"id":"srv-bk","name":"Backup box","n":4,"cols":0}],"drives":[{"id":"D01","gb":4000,"type":"HDD","make":"WD","sn":"K7Q2","ff":"3.5","v":"vd-tank"},{"id":"D02","gb":4000,"type":"HDD","make":"WD","sn":"M3XA","ff":"3.5","v":"vd-tank"},{"id":"D03","gb":4000,"type":"HDD","make":"WD","sn":"P9LD","ff":"3.5","v":"vd-tank"},{"id":"D04","gb":4000,"type":"HDD","make":"WD","sn":"R2VN","ff":"3.5","v":"vd-tank"},{"id":"D05","gb":4000,"type":"HDD","make":"WD","sn":"T6HC","ff":"3.5","v":"vd-tank"},{"id":"D06","gb":4000,"type":"HDD","make":"WD","sn":"W8JE","ff":"3.5","v":"vd-tank"},{"id":"S01","gb":1000,"type":"SSD","make":"SAM","sn":"4FZ1","ff":"2.5","v":"vd-fast"},{"id":"S02","gb":1000,"type":"SSD","make":"SAM","sn":"4G07","ff":"2.5","v":"vd-fast"},{"id":"D07","gb":2000,"type":"HDD","make":"SG","sn":"ZA41","ff":"3.5","v":"vd-bk"},{"id":"D08","gb":2000,"type":"HDD","make":"SG","sn":"ZA5K","ff":"3.5","v":"vd-bk"},{"id":"D09","gb":2000,"type":"HDD","make":"SG","sn":"ZB0P","ff":"3.5","v":"vd-bk"},{"id":"D10","gb":2000,"type":"HDD","make":"SG","sn":"ZB2R","ff":"3.5","v":"vd-bk"},{"id":"D11","gb":8000,"type":"HDD","make":"TOSH","sn":"X1C9","ff":"3.5e","v":null},{"id":"D12","gb":8000,"type":"HDD","make":"TOSH","sn":"X1D3","ff":"3.5e","v":null,"note":"Example note: failing SMART long test, keep out of pools."}],"vdevs":[{"id":"vd-tank","pool":"tank","layout":"raidz2","c":0},{"id":"vd-fast","pool":"fast","layout":"mirror","c":2},{"id":"vd-bk","pool":"backup","layout":"raidz1","c":1}],"bays":[{"d":"D01"},{"d":"D02"},{"d":"D03"},{"d":"D04"},{"d":"D05"},{"d":"D06"},{"d":"S01"},{"d":"S02"},{"d":"D07"},{"d":"D08"},{"d":"D09"},{"d":"D10"}],"poolNotes":{"tank":"Example pool. Click Clear inventory in Drive inventory to start from scratch."},"poolMeta":{"tank":{"enc":true,"usedGB":null,"usableGB":null,"ds":[{"id":"ds-media","name":"media","gb":5200,"enc":true},{"id":"ds-photos","name":"photos","gb":1400,"enc":true}]}}},"layouts":[]};
+const DEFAULT_CFG={"app":"driveshelf","version":3,"state":{"example":true,"servers":[{"id":"srv-nas","name":"Main NAS","n":8,"cols":0},{"id":"srv-bk","name":"Backup box","n":4,"cols":0}],"drives":[{"id":"D01","gb":4000,"type":"HDD","make":"WD","sn":"K7Q2","ff":"3.5","v":"vd-tank"},{"id":"D02","gb":4000,"type":"HDD","make":"WD","sn":"M3XA","ff":"3.5","v":"vd-tank"},{"id":"D03","gb":4000,"type":"HDD","make":"WD","sn":"P9LD","ff":"3.5","v":"vd-tank"},{"id":"D04","gb":4000,"type":"HDD","make":"WD","sn":"R2VN","ff":"3.5","v":"vd-tank"},{"id":"D05","gb":4000,"type":"HDD","make":"WD","sn":"T6HC","ff":"3.5","v":"vd-tank"},{"id":"D06","gb":4000,"type":"HDD","make":"WD","sn":"W8JE","ff":"3.5","v":"vd-tank"},{"id":"S01","gb":1000,"type":"SSD","make":"SAM","sn":"4FZ1","ff":"2.5","v":"vd-fast"},{"id":"S02","gb":1000,"type":"SSD","make":"SAM","sn":"4G07","ff":"2.5","v":"vd-fast"},{"id":"D07","gb":2000,"type":"HDD","make":"SG","sn":"ZA41","ff":"3.5","v":"vd-bk"},{"id":"D08","gb":2000,"type":"HDD","make":"SG","sn":"ZA5K","ff":"3.5","v":"vd-bk"},{"id":"D09","gb":2000,"type":"HDD","make":"SG","sn":"ZB0P","ff":"3.5","v":"vd-bk"},{"id":"D10","gb":2000,"type":"HDD","make":"SG","sn":"ZB2R","ff":"3.5","v":"vd-bk"},{"id":"D11","gb":8000,"type":"HDD","make":"TOSH","sn":"X1C9","ff":"3.5e","v":null},{"id":"D12","gb":8000,"type":"HDD","make":"TOSH","sn":"X1D3","ff":"3.5e","v":null,"note":"Example note: failing SMART long test, keep out of pools."}],"vdevs":[{"id":"vd-tank","pool":"tank","layout":"raidz2","c":0},{"id":"vd-fast","pool":"fast","layout":"mirror","c":2},{"id":"vd-bk","pool":"backup","layout":"raidz1","c":1}],"bays":[{"d":"D01"},{"d":"D02"},{"d":"D03"},{"d":"D04"},{"d":"D05"},{"d":"D06"},{"d":"S01"},{"d":"S02"},{"d":"D07"},{"d":"D08"},{"d":"D09"},{"d":"D10"}],"poolNotes":{"tank":"Example pool. Click Clear inventory in Drive inventory to start from scratch."},"poolMeta":{"tank":{"enc":true,"usedGB":null,"usableGB":null,"ds":[{"id":"ds-media","name":"media","gb":5200,"enc":true},{"id":"ds-photos","name":"photos","gb":1400,"enc":true}]}}},"layouts":[]};
 
 const sv=(w,b)=>`<svg viewBox="0 0 16 16" width="${w}" height="${w}" aria-hidden="true">${b}</svg>`;
 const SHIELD=sv(13,'<path d="M8 1.3 2.6 3.4v4.1c0 3.3 2.3 5.9 5.4 7.1 3.1-1.2 5.4-3.8 5.4-7.1V3.4z" fill="currentColor"/>');
@@ -1299,7 +1301,7 @@ function renderBays(){
   $('#tools-bays').innerHTML=`<button type="button" class="primary sm" id="addServer" aria-haspopup="menu" aria-expanded="false" ${S.servers.length>=MAXS?'disabled':''}>+ Add server</button>`;
   $('#addServer').onclick=e=>openServerMenu(e.currentTarget);
   if(noSrv()){
-    wrap.innerHTML=`<div class="empty-state"><b>No servers</b><span>DiskShelf works as a plain drive inventory. Add a server when you want to plan which drive goes in which bay.</span><span><button type="button" class="primary sm" id="addServer2" aria-haspopup="menu" aria-expanded="false">+ Add a server</button></span></div>`;
+    wrap.innerHTML=`<div class="empty-state"><b>No servers</b><span>DriveShelf works as a plain drive inventory. Add a server when you want to plan which drive goes in which bay.</span><span><button type="button" class="primary sm" id="addServer2" aria-haspopup="menu" aria-expanded="false">+ Add a server</button></span></div>`;
     $('#addServer2').onclick=e=>openServerMenu(e.currentTarget);
   }
   S.servers.forEach((s,k)=>{
@@ -1848,9 +1850,9 @@ function setStatus(){
 function scheduleSave(){lsSet(KEY,S);setStatus()}
 
 /* ================= save / load file ================= */
-function backupText(){return JSON.stringify({app:'diskshelf',version:3,savedAt:new Date().toISOString(),state:S,ui:U,layouts:layoutList().map(l=>({name:l.name,state:l.state}))},null,1)}
+function backupText(){return JSON.stringify({app:'driveshelf',version:3,savedAt:new Date().toISOString(),state:S,ui:U,layouts:layoutList().map(l=>({name:l.name,state:l.state}))},null,1)}
 function saveFile(){
-  const txt=backupText(),name=`diskshelf-${new Date().toISOString().slice(0,10)}.json`;
+  const txt=backupText(),name=`driveshelf-${new Date().toISOString().slice(0,10)}.json`;
   if(!framed){try{const url=URL.createObjectURL(new Blob([txt],{type:'application/json'})),a=document.createElement('a');a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),5000);toast(`Saved ${name} to your downloads folder.`);return}catch(e){}}
   openBk(txt);
 }
@@ -2146,7 +2148,7 @@ function addDrive(id,gb,type,sn,make,ff){
 }
 
 /* ================= setup: what are you planning? ================= */
-const SETUP_KEY='diskshelf.setup';
+const SETUP_KEY='driveshelf.setup';
 let suRows=null,suFirst=false;
 const hasOwnData=()=>!S.example&&(S.drives.length>0||S.vdevs.length>0);
 function openSetup(first){suFirst=!!first;suRows=null;closeMenu();renderSetup(1);$('#setup').hidden=false;const o=$('#setup .su-opt');if(o)o.focus()}
@@ -2155,7 +2157,7 @@ function dismissSetup(){if(suFirst)lsSet(SETUP_KEY,{kind:'example',at:Date.now()
 function renderSetup(step){
   const box=$('#setupBox'),keep=hasOwnData(),close=`<button type="button" class="icon-btn ghost" id="suClose" aria-label="Close">${XI}</button>`;
   if(step===1){
-    box.innerHTML=`<div class="su-head"><div><div class="eyebrow">${suFirst?'Welcome to DiskShelf':'Setup'}</div><h2 id="suTitle">What are you planning?</h2></div>${close}</div>
+    box.innerHTML=`<div class="su-head"><div><div class="eyebrow">${suFirst?'Welcome to DriveShelf':'Setup'}</div><h2 id="suTitle">What are you planning?</h2></div>${close}</div>
       <p class="note">${suFirst?'Pick what fits. You can add or remove servers any time, and change this later in Settings.':keep?'Your drives, vdevs, pools and notes are kept. Drives in bays go back on the shelf.':'You can add or remove servers any time.'}</p>
       <div class="su-opts">
         <button type="button" class="su-opt" data-su="drives"><span class="ic">${IC.inv}</span><b>Just my drives</b><small>Keep an inventory of your drives and plan RAID pools. No servers or bays.</small></button>
